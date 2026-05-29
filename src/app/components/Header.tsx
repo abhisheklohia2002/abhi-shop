@@ -4,10 +4,11 @@ import { useCart } from "../context/CartContext";
 import { useState } from "react";
 import LoginPop from "./popup/loginPop";
 
-export default function Header() {
+export default function Header({ user, refetchSelf }:any) {
   const { getTotalItems } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = useState(true);
+  console.log(user?.data?.user?.email,'refetchSelf')
   return (
     <>
       <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -71,13 +72,23 @@ export default function Header() {
               </div>
             </div>
             <div className="flex items-center gap-3 sm:gap-5 lg:gap-6">
-              <button
-                onClick={() => setOpen(true)}
-                className="flex flex-col items-center gap-1 hover:text-blue-600"
-              >
-                <User className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span className="text-[10px] sm:text-xs">Login</span>
-              </button>
+              {user ? (
+                <button className="flex flex-col items-center gap-1 hover:text-blue-600">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                    {user?.data?.user?.email?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <span className="text-[10px] sm:text-xs">
+                    {user?.data?.user?.email || "Account"}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setOpen(true)}
+                  className="flex flex-col items-center gap-1 hover:text-blue-600"
+                >
+                  <User className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              )}
 
               <button className="flex flex-col items-center gap-1 hover:text-blue-600">
                 <Heart className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -155,8 +166,10 @@ export default function Header() {
           </div>
         </div>
       </header>
-
-      <LoginPop open={open} setOpen={setOpen} />
+      {
+        !user?.data?.user?.email && <LoginPop open={open} setOpen={setOpen} />
+      }
+      
     </>
   );
 }
