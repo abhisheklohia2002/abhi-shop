@@ -5,6 +5,8 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import Layout from "./components/Layout";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentCancelPage from "./pages/PaymentCancelPage";
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +18,8 @@ export const router = createBrowserRouter([
       { path: "product/:id", Component: ProductDetailPage },
       { path: "cart", Component: CartPage },
       { path: "checkout", Component: CheckoutPage },
+       { path: "payment/success", Component: PaymentSuccessPage },
+      { path: "payment/cancel", Component: PaymentCancelPage },
     ],
   },
 ]);

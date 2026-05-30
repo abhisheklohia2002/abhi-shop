@@ -8,6 +8,9 @@ import { getRandomBotResponse } from "../data/dummyData";
 import { ChatHeader } from "../components/chat/ChatHeader";
 import { MessageList } from "../components/chat/MessageList";
 import { ChatInput } from "../components/chat/ChatInput";
+import { getCategories, getProduct } from "../../http/api";
+import { useQuery } from "@tanstack/react-query";
+import { productApi } from "../../http/client";
 const initialMessages: Message[] = [
   {
     id: "welcome",
@@ -21,6 +24,23 @@ export default function HomePage() {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isTyping, setIsTyping] = useState(false);
+  const {
+    data: categoryData,
+    isLoading: isCategoryLoading,
+    isError: isCategoryError,
+  } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+  });
+
+  const {
+    data: productData,
+    isLoading: isProductLoading,
+    isError: isProductError,
+  } = useQuery({
+    queryKey: ["products"],
+    queryFn: () => getProduct(),
+  });
 
   const handleSend = useCallback((text: string) => {
     const userMsg: Message = {
@@ -29,7 +49,6 @@ export default function HomePage() {
       sender: "user",
       timestamp: new Date(),
     };
-
     setMessages((prev) => [...prev, userMsg]);
 
     setIsTyping(true);
@@ -106,7 +125,7 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-          {categories.map((category) => (
+          {categoryData?.data?.data?.map((category: any) => (
             <Link
               key={category.id}
               to={`/products/${category.id}`}
@@ -122,7 +141,9 @@ export default function HomePage() {
               <h3 className="font-medium text-sm text-gray-900 mb-1">
                 {category.name}
               </h3>
-              <p className="text-xs text-gray-500">{category.count} items</p>
+              <p className="text-xs text-gray-500">
+                {category.products.length ?? 0} items
+              </p>
             </Link>
           ))}
         </div>
@@ -141,7 +162,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {dealProducts.map((product) => (
+            {productData?.products?.map((product: any) => (
               <ProductCard key={product.id} {...product} />
             ))}
           </div>
@@ -162,7 +183,7 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProducts.map((product) => (
+          {productData?.products?.map((product: any) => (
             <ProductCard key={product.id} {...product} />
           ))}
         </div>

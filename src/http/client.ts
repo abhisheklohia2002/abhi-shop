@@ -50,6 +50,7 @@ const createApiInstance = (baseURL: string) => {
   return api
 }
 const api = createApiInstance(import.meta.env.VITE_BACKEND_API_URL ?? "");
+export const productApi = createApiInstance(import.meta.env.VITE_PRODUCT_SERVICE ?? "");
 export const orderApi = createApiInstance(import.meta.env.VITE_ORDER_SERVICE ?? "");
 
 export default api;

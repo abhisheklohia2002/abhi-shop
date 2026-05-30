@@ -1,10 +1,14 @@
 
-import api, { orderApi } from "./client";
+import api, { orderApi, productApi } from "./client";
 const AUTH_SERVICE = "/api/auth"
-const CATALOG_SERVICE = "/api/catalog"
-const ORDER_SERVICE = "coupon/"
+const ORDER_SERVICE = "/order"
+import { v4 as uuidv4 } from "uuid"
 export const login = async (credentials:any) => {
   return await api.post(`/auth/login`, credentials);
+};
+
+export const register = async (credentials:any) => {
+  return await api.post(`/auth/create`, credentials);
 };
 
 export const self = async () => {
@@ -37,20 +41,37 @@ export const createTenants = async (data:any) => {
   return await api.post(`${AUTH_SERVICE}/tenant`, data);
 };
 
-
-//categlog service 
-
 export const getCategories = async()=>{
-  return await api.get(`${CATALOG_SERVICE}/category/`)
+  return await productApi.get(`/category/`)
 }
 
-export const showProduct = async(query: string) => {
-  return await api.get(`${CATALOG_SERVICE}/product?${query}`);
+export const getProductById = async(id: number) => {
+  return await productApi.get(`/product/${id}`);
+};
+
+export const getProduct = async (categoryId?: string | number) => {
+  const res = await productApi.get("/product/", {
+    params: categoryId ? { categoryId } : {},
+  });
+
+  return res.data;
+};
+
+export const createOrder = async (payload: any) => {
+  const idempotencyKey = `order-${uuidv4()}`;
+
+  const res = await orderApi.post("/order/", payload, {
+    headers: {
+      "Idempotency-Key": idempotencyKey,
+    },
+  });
+
+  return res.data;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createProduct = async(data:FormData) => {
-  return await api.post(`${CATALOG_SERVICE}/product`,data,
+  return await productApi.post(`/product`,data,
     {
        headers: {
       "Content-Type": undefined, 
@@ -60,5 +81,5 @@ export const createProduct = async(data:FormData) => {
 };
 
 export const couponLists = async()=>{
-  return await orderApi.get(`${ORDER_SERVICE}/`)
+  return await productApi.get(`${ORDER_SERVICE}/`)
 }

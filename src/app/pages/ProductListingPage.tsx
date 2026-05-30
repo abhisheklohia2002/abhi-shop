@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { products } from "../data/mockData";
 import ProductCard from "../components/ProductCard";
+import { useQuery } from "@tanstack/react-query";
+import { getProduct } from "../../http/api";
 
 export default function ProductListingPage() {
   const { category } = useParams();
@@ -17,6 +19,13 @@ export default function ProductListingPage() {
     filteredProducts = products.filter((p) => p.category === category);
   }
 
+  const { data, isLoading } = useQuery({
+  queryKey: ["products", category],
+  queryFn: () => getProduct(category),
+  enabled: !!category,
+});
+
+console.log("Fetched products:", data?.products);
   // Apply filters
   filteredProducts = filteredProducts.filter((p) => {
     if (p.price < priceRange[0] || p.price > priceRange[1]) return false;
@@ -154,7 +163,7 @@ export default function ProductListingPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">{categoryName}</h1>
-              <p className="text-sm text-gray-600">Showing {sortedProducts.length} products</p>
+              <p className="text-sm text-gray-600">Showing {data?.products?.length} products</p>
             </div>
 
             {/* Sort Dropdown */}
@@ -175,9 +184,9 @@ export default function ProductListingPage() {
           </div>
 
           {/* Products Grid */}
-          {sortedProducts.length > 0 ? (
+          {data?.products?.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sortedProducts.map((product) => (
+              {data?.products?.map((product:any) => (
                 <ProductCard key={product.id} {...product} />
               ))}
             </div>

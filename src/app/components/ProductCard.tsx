@@ -7,7 +7,7 @@ interface ProductCardProps {
   name: string;
   price: number;
   originalPrice?: number;
-  discount?: number;
+  discountPrice?: number;
   rating: number;
   reviews: number;
   image: string;
@@ -20,7 +20,7 @@ export default function ProductCard({
   name,
   price,
   originalPrice,
-  discount,
+  discountPrice,
   rating,
   reviews,
   image,
@@ -31,7 +31,7 @@ export default function ProductCard({
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart({ id, name, price, image, discount });
+    addToCart({ id, name, price, image, discountPrice });
   };
 
   return (
@@ -44,9 +44,9 @@ export default function ProductCard({
             alt={name}
             className="w-full h-full object-cover rounded"
           />
-          {discount && discount > 0 && (
+          {discountPrice && discountPrice > 0 && (
             <span className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
-              {discount}% OFF
+              {discountPrice}% OFF
             </span>
           )}
           {!inStock && (
@@ -62,13 +62,13 @@ export default function ProductCard({
           <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">{name}</h3>
 
           {/* Rating */}
-          <div className="flex items-center gap-2 mb-2">
+          {/* <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center gap-1 bg-green-600 text-white px-2 py-0.5 rounded text-xs">
               <span>{rating}</span>
               <Star className="w-3 h-3 fill-white" />
             </div>
             <span className="text-xs text-gray-500">({reviews})</span>
-          </div>
+          </div> */}
 
           {/* Price */}
           <div className="flex items-center gap-2 mb-3 mt-auto">

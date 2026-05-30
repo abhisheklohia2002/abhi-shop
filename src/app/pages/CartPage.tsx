@@ -42,8 +42,8 @@ export default function CartPage() {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg border border-gray-200">
             {cart.map((item) => {
-              const itemPrice = item.discount
-                ? item.price * (1 - item.discount / 100)
+              const itemPrice = item.discountPrice
+                ? item.price * (1 - item.discountPrice / 100)
                 : item.price;
 
               return (
@@ -68,13 +68,13 @@ export default function CartPage() {
                         <span className="text-xl font-bold text-gray-900">
                           ₹{Math.round(itemPrice).toLocaleString()}
                         </span>
-                        {item.discount && (
+                        {item.discountPrice && (
                           <>
                             <span className="text-sm text-gray-500 line-through">
                               ₹{item.price.toLocaleString()}
                             </span>
                             <span className="text-sm text-green-600 font-semibold">
-                              {item.discount}% OFF
+                              {item.discountPrice}% OFF
                             </span>
                           </>
                         )}

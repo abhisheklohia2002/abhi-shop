@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Star, ShoppingCart, Heart, Share2, Truck, Shield, RotateCcw } from "lucide-react";
 import { products } from "../data/mockData";
 import { useCart } from "../context/CartContext";
+import { useQuery } from "@tanstack/react-query";
+import { getProductById } from "../../http/api";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -10,6 +12,30 @@ export default function ProductDetailPage() {
   const { addToCart } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+
+  const {
+    data: productById,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => getProductById(Number(id)),
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return <p>Loading product...</p>;
+  }
+
+  if (isError) {
+    return <p>Failed to load product</p>;
+  }
+
+  if (!productById) {
+    return <p>Product not found</p>;
+  }
+  console.log(productById?.data,'productById')
 
   const product = products.find((p) => p.id === parseInt(id || "0"));
 
@@ -33,7 +59,7 @@ export default function ProductDetailPage() {
         name: product.name,
         price: product.price,
         image: product.image,
-        discount: product.discount,
+        discountPrice: product.discount,
       });
     }
   };
@@ -85,7 +111,7 @@ export default function ProductDetailPage() {
         <div>
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
             <img
-              src={images[selectedImage]}
+              src={productById?.data?.image?? ""}
               alt={product.name}
               className="w-full h-96 object-contain"
             />
@@ -119,22 +145,22 @@ export default function ProductDetailPage() {
         <div>
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             {product.brand && <p className="text-sm text-gray-500 mb-2">{product.brand}</p>}
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">{product.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">{productById?.data?.name}</h1>
 
             {/* Rating */}
-            <div className="flex items-center gap-4 mb-4">
+            {/* <div className="flex items-center gap-4 mb-4">
               <div className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded">
                 <span className="font-semibold">{product.rating}</span>
                 <Star className="w-4 h-4 fill-white" />
               </div>
               <span className="text-gray-600">{product.reviews} Reviews</span>
-            </div>
+            </div> */}
 
             {/* Price */}
             <div className="mb-6">
               <div className="flex items-center gap-4 mb-2">
                 <span className="text-3xl font-bold text-gray-900">
-                  ₹{product.price.toLocaleString()}
+                  ₹{productById?.data.price.toLocaleString()}
                 </span>
                 {product.originalPrice && (
                   <>
@@ -142,7 +168,7 @@ export default function ProductDetailPage() {
                       ₹{product.originalPrice.toLocaleString()}
                     </span>
                     <span className="text-green-600 font-semibold">
-                      {product.discount}% OFF
+                      {productById?.data.discountPrice}% OFF
                     </span>
                   </>
                 )}

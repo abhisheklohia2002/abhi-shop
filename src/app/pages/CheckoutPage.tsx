@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { CreditCard, Smartphone, Banknote, CheckCircle } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { useMutation } from "@tanstack/react-query";
+import { createOrder } from "../../http/api";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -14,10 +16,41 @@ export default function CheckoutPage() {
     email: "",
     phone: "",
     address: "",
+    addressLine2: "",
     city: "",
     state: "",
     pincode: "",
   });
+console.log("Cart data in CheckoutPage:", cart);
+  const createOrderMutation = useMutation({
+  mutationFn: createOrder,
+
+  onSuccess: (response) => {
+    const paymentUrl = response?.data?.paymentUrl;
+
+    if (paymentUrl) {
+      window.location.href = paymentUrl;
+      return;
+    }
+
+    setOrderPlaced(true);
+
+    setTimeout(() => {
+      clearCart();
+      navigate("/");
+    }, 3000);
+  },
+
+  onError: (error: any) => {
+    console.log("ORDER ERROR:", error);
+
+    alert(
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      "Failed to place order"
+    );
+  },
+});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -26,13 +59,30 @@ export default function CheckoutPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setOrderPlaced(true);
-    setTimeout(() => {
-      clearCart();
-      navigate("/");
-    }, 3000);
+
+    const payload = {
+      paymentMethod: paymentMethod === "cod" ? "COD" : "ONLINE",
+
+      items: cart.map((item) => ({
+        productId: item.id,
+        quantity: item.quantity,
+      })),
+
+      shippingAddress: {
+        fullName: formData.name,
+        phone: formData.phone,
+        addressLine1: formData.address,
+        addressLine2: "",
+        city: formData.city,
+        state: formData.state,
+        country: "India",
+        pincode: formData.pincode,
+      },
+    };
+
+    createOrderMutation.mutate(payload);
   };
 
   if (cart.length === 0 && !orderPlaced) {
@@ -47,10 +97,15 @@ export default function CheckoutPage() {
           <div className="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
             <CheckCircle className="w-12 h-12 text-green-600" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Order Placed Successfully!</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Order Placed Successfully!
+          </h2>
           <p className="text-gray-600 mb-2">Thank you for your order.</p>
           <p className="text-gray-600 mb-8">
-            Your order ID is <span className="font-semibold">#{Math.floor(Math.random() * 1000000)}</span>
+            Your order ID is{" "}
+            <span className="font-semibold">
+              #{Math.floor(Math.random() * 1000000)}
+            </span>
           </p>
           <p className="text-sm text-gray-500">Redirecting to home page...</p>
         </div>
@@ -73,7 +128,9 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Delivery Address */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Delivery Address</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Delivery Address
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -127,6 +184,19 @@ export default function CheckoutPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address Line 2
+                  </label>
+                  <input
+                    type="text"
+                    name="addressLine2"
+                    value={formData.addressLine2}
+                    onChange={handleChange}
+                    placeholder="Near landmark, apartment, floor, etc."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     City *
@@ -171,7 +241,9 @@ export default function CheckoutPage() {
 
             {/* Payment Method */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Method</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Payment Method
+              </h2>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition">
                   <input
@@ -184,8 +256,12 @@ export default function CheckoutPage() {
                   />
                   <Banknote className="w-6 h-6 text-gray-600" />
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Cash on Delivery</p>
-                    <p className="text-sm text-gray-600">Pay when you receive</p>
+                    <p className="font-semibold text-gray-900">
+                      Cash on Delivery
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Pay when you receive
+                    </p>
                   </div>
                 </label>
 
@@ -201,7 +277,9 @@ export default function CheckoutPage() {
                   <Smartphone className="w-6 h-6 text-gray-600" />
                   <div className="flex-1">
                     <p className="font-semibold text-gray-900">UPI Payment</p>
-                    <p className="text-sm text-gray-600">PhonePe, Google Pay, Paytm</p>
+                    <p className="text-sm text-gray-600">
+                      PhonePe, Google Pay, Paytm
+                    </p>
                   </div>
                 </label>
 
@@ -216,8 +294,12 @@ export default function CheckoutPage() {
                   />
                   <CreditCard className="w-6 h-6 text-gray-600" />
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Credit/Debit Card</p>
-                    <p className="text-sm text-gray-600">Visa, Mastercard, Rupay</p>
+                    <p className="font-semibold text-gray-900">
+                      Credit/Debit Card
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Visa, Mastercard, Rupay
+                    </p>
                   </div>
                 </label>
               </div>
@@ -227,7 +309,9 @@ export default function CheckoutPage() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-24">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">
+                Order Summary
+              </h2>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm text-gray-700">
@@ -263,7 +347,9 @@ export default function CheckoutPage() {
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {item.name}
                       </p>
-                      <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+                      <p className="text-xs text-gray-600">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -271,9 +357,12 @@ export default function CheckoutPage() {
 
               <button
                 type="submit"
-                className="w-full bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 font-semibold"
+                disabled={createOrderMutation.isPending}
+                className="w-full bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Place Order
+                {createOrderMutation.isPending
+                  ? "Placing Order..."
+                  : "Place Order"}
               </button>
 
               <div className="mt-4 text-xs text-center text-gray-500">

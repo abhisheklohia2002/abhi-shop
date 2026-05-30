@@ -7,7 +7,7 @@ interface CartItem {
   price: number;
   image: string;
   quantity: number;
-  discount?: number;
+  discountPrice?: number;
 }
 
 interface CartContextType {
@@ -61,7 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const getTotalPrice = () => {
     return cart.reduce((total, item) => {
-      const itemPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
+      const itemPrice = item.discountPrice ? item.price * (1 - item.discountPrice / 100) : item.price;
       return total + itemPrice * item.quantity;
     }, 0);
   };

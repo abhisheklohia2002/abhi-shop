@@ -13,7 +13,8 @@ import { Label } from "../ui/label";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
 import { useMutation } from "@tanstack/react-query";
-import { login } from "../../../http/api";
+import { login, register } from "../../../http/api";
+import { v4 as uuidv4 } from "uuid"
 
 interface AuthModalProps {
   open: boolean;
@@ -64,6 +65,18 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
     },
   });
 
+  const signupMutation = useMutation({
+    mutationFn: register,
+    onSuccess: (data) => {
+      console.log("Signup success:", data);
+
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      console.error("Signup failed:", error);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -75,7 +88,16 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
       return;
     }
-    console.log("Signup:", { name, email, password });
+
+  const empCode = `${uuidv4()}`;
+
+    signupMutation.mutate({
+      name,
+      email,
+      password,
+      "employee_code": "EMP" + empCode
+    });
+    console.log("Signup:", { name, email, password, employee_code: "EMP" + empCode });
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
